@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.LoginRequestDTO;
 import com.example.demo.dto.RegisterRequestDTO;
 
 import com.example.demo.dto.UserResponseDTO;
@@ -10,6 +11,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -20,8 +22,21 @@ public class UserController {
         this.userService = userService;
     }
     @PostMapping("/register")
-    public UserResponseDTO register(@Valid @RequestBody RegisterRequestDTO request) {
-    	
-        return userService.register(request);
+    public ResponseEntity<UserResponseDTO> register(
+            @Valid @RequestBody RegisterRequestDTO request) {
+
+        UserResponseDTO response = userService.register(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+    @PostMapping("/login")
+    public ResponseEntity<UserResponseDTO> login(
+            @Valid @RequestBody LoginRequestDTO request) {
+
+        UserResponseDTO response = userService.login(request);
+
+        return ResponseEntity.ok(response);
     }
 }

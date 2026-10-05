@@ -2,6 +2,8 @@ package com.example.demo.service;
 import com.example.demo.config.*;
 import com.example.demo.dto.*;
 import com.example.demo.entity.*;
+import com.example.demo.exception.EmailAlreadyExistException;
+import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.repository.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,10 +23,26 @@ public class UserService {
         return userRepository.findByEmail(email).isPresent();
         
     }
+    public UserResponseDTO login(LoginRequestDTO request) {
+
+        User user = userRepository
+                .findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
+
+            throw new InvalidCredentialsException(
+                    "Invalid email or password");
+        }
+        return null;
+    }
     public UserResponseDTO register(RegisterRequestDTO request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+            throw new EmailAlreadyExistException("Email already registered");
         }
         
         UserResponseDTO responseDTO = new UserResponseDTO();
@@ -55,5 +73,6 @@ public class UserService {
         
         
     }
+    
     
 }
