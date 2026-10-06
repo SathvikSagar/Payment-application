@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.LoginRequestDTO;
+import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.dto.RegisterRequestDTO;
 
 import com.example.demo.dto.UserResponseDTO;
@@ -32,10 +33,10 @@ public class UserController {
                 .body(response);
     }
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDTO> login(
+    public ResponseEntity<LoginResponseDTO> login(
             @Valid @RequestBody LoginRequestDTO request) {
 
-        UserResponseDTO response = userService.login(request);
+        LoginResponseDTO response = userService.login(request);
 
         return ResponseEntity.ok(response);
     }

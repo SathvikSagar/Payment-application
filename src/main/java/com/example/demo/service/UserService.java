@@ -1,5 +1,6 @@
 package com.example.demo.service;
 import com.example.demo.config.*;
+
 import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.exception.EmailAlreadyExistException;
@@ -14,16 +15,22 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder) {
+    public UserService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
+
         this.userRepository = userRepository;
-		this.passwordEncoder = passwordEncoder;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
     public boolean emailExists(String email) {
         return userRepository.findByEmail(email).isPresent();
         
     }
-    public UserResponseDTO login(LoginRequestDTO request) {
+    public LoginResponseDTO login(LoginRequestDTO request) {
 
         User user = userRepository
                 .findByEmail(request.getEmail())
@@ -37,7 +44,15 @@ public class UserService {
             throw new InvalidCredentialsException(
                     "Invalid email or password");
         }
-        return null;
+        String token = jwtService.generateToken(
+                user.getEmail(),
+                user.getRole()
+        );
+        LoginResponseDTO response = new LoginResponseDTO();
+        response.setToken(token);
+
+        return response;
+        
     }
     public UserResponseDTO register(RegisterRequestDTO request) {
 
