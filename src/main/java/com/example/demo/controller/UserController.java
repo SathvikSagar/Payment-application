@@ -40,4 +40,8 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/me")
+    public String getCurrentUser() {
+        return "Authenticated user";
+    }
 }
