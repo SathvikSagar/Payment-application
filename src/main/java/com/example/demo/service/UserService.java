@@ -1,30 +1,32 @@
 package com.example.demo.service;
 import com.example.demo.config.*;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.exception.EmailAlreadyExistException;
 import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.repository.UserRepository;
-
+import com.example.demo.service.WalletService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-
+	
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-
+    private final WalletService walletService;
     public UserService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
+            JwtService jwtService,
+            WalletService walletService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.walletService = walletService;
     }
     public boolean emailExists(String email) {
         return userRepository.findByEmail(email).isPresent();
@@ -54,6 +56,7 @@ public class UserService {
         return response;
         
     }
+    @Transactional
     public UserResponseDTO register(RegisterRequestDTO request) {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -76,6 +79,7 @@ public class UserService {
         user.setRole("USER");
 
         User savedUser = userRepository.save(user);
+        walletService.createWallet(savedUser);
         
         responseDTO.setId(savedUser.getId());
         responseDTO.setName(savedUser.getName());
