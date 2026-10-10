@@ -39,7 +39,7 @@ public class WalletService {
     }
     public WalletResponseDTO getWalletBalance(String email) {
 
-        Wallet wallet = walletRepository.findByUserEmail(email)
+        Wallet wallet = walletRepository.findByUserEmailForUpdate(email)
                 .orElseThrow(() ->
                         new RuntimeException("Wallet not found"));
 
@@ -51,7 +51,7 @@ public class WalletService {
     @Transactional
     public WalletResponseDTO deposit(String email, DepositRequestDTO request) {
 
-        Wallet wallet = walletRepository.findByUserEmail(email)
+        Wallet wallet = walletRepository.findByUserEmailForUpdate(email)
                 .orElseThrow(() ->
                         new RuntimeException("Wallet not found"));
 
@@ -85,11 +85,36 @@ public class WalletService {
                     "Cannot transfer money to yourself");
         }
 
-        Wallet sender = walletRepository.findByUserEmail(senderEmail)
+        Integer senderId = walletRepository
+                .findWalletIdByUserEmail(senderEmail)
                 .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
 
-        Wallet receiver = walletRepository.findByUserEmail(request.getReceiverEmail())
+        Integer receiverId = walletRepository
+                .findWalletIdByUserEmail(request.getReceiverEmail())
                 .orElseThrow(() -> new RuntimeException("Receiver wallet not found"));
+
+        Wallet firstWallet;
+        Wallet secondWallet;
+
+        if (senderId < receiverId) {
+            firstWallet = walletRepository.findByIdForUpdate(senderId)
+                    .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
+
+            secondWallet = walletRepository.findByIdForUpdate(receiverId)
+                    .orElseThrow(() -> new RuntimeException("Receiver wallet not found"));
+        } else {
+            firstWallet = walletRepository.findByIdForUpdate(receiverId)
+                    .orElseThrow(() -> new RuntimeException("Receiver wallet not found"));
+
+            secondWallet = walletRepository.findByIdForUpdate(senderId)
+                    .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
+        }
+
+        Wallet sender = senderId.equals(firstWallet.getId())
+                ? firstWallet : secondWallet;
+
+        Wallet receiver = receiverId.equals(firstWallet.getId())
+                ? firstWallet : secondWallet;
 
         BigDecimal amount = request.getAmount();
 
@@ -114,7 +139,7 @@ public class WalletService {
     }
     public List<TransactionResponseDTO> getTransactionHistory(String email) {
 
-        Wallet wallet = walletRepository.findByUserEmail(email)
+        Wallet wallet = walletRepository.findByUserEmailForUpdate(email)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
         Integer userId = wallet.getUser().getId();
