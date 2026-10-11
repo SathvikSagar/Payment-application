@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.DepositRequestDTO;
+import com.example.demo.service.FailedTransactionService;
 import com.example.demo.dto.TransactionResponseDTO;
 import com.example.demo.dto.TransferRequestDTO;
 import com.example.demo.dto.WalletResponseDTO;
@@ -22,11 +23,16 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final FailedTransactionService failedTransactionService;
+
     public WalletService(
             WalletRepository walletRepository,
-            TransactionRepository transactionRepository) {
+            TransactionRepository transactionRepository,
+            FailedTransactionService failedTransactionService) {
+
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.failedTransactionService = failedTransactionService;
     }
     
     public Wallet createWallet(User user) {
@@ -119,6 +125,12 @@ public class WalletService {
         BigDecimal amount = request.getAmount();
 
         if (sender.getBalance().compareTo(amount) < 0) {
+            failedTransactionService.recordFailedTransaction(
+                    sender.getUser(),
+                    receiver.getUser(),
+                    amount
+            );
+
             throw new IllegalArgumentException("Insufficient balance");
         }
 
@@ -128,14 +140,14 @@ public class WalletService {
         walletRepository.save(sender);
         walletRepository.save(receiver);
         Transaction transaction = new Transaction();
-
         transaction.setSender(sender.getUser());
         transaction.setReceiver(receiver.getUser());
         transaction.setAmount(amount);
         transaction.setStatus(TransactionStatus.SUCCESS);
         transaction.setCreatedAt(LocalDateTime.now());
+        
 
-        transactionRepository.save(transaction);
+        transactionRepository.saveAndFlush(transaction);
     }
     public List<TransactionResponseDTO> getTransactionHistory(String email) {
 
