@@ -29,4 +29,7 @@ public class Transaction {
     private TransactionStatus status;
 
     private LocalDateTime createdAt;
+    
+    @Column(name = "idempotency_key", unique = true, length = 100)
+    private String idempotencyKey;
 }

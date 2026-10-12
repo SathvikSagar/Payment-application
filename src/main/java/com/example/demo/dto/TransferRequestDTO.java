@@ -20,4 +20,6 @@ public class TransferRequestDTO {
     @NotNull
     @DecimalMin(value = "0.00", inclusive = false)
     private BigDecimal amount;
+    
+    private String idempotencyKey;
 }

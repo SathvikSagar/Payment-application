@@ -47,17 +47,28 @@ public class WalletController {
 
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/transfer")
-    public ResponseEntity<String> transfer(
-            @Valid @RequestBody TransferRequestDTO request,
-            Authentication authentication) {
 
-        String senderEmail = authentication.getName();
+	@PostMapping("/transfer")
+	public ResponseEntity<TransactionResponseDTO> transfer(
+	        @Valid @RequestBody TransferRequestDTO request,
+	        Authentication authentication) {
+	
+	    String senderEmail = authentication.getName();
+	
+	    Transaction transaction =
+	            walletService.transfer(senderEmail, request);
+	
+	    TransactionResponseDTO response = new TransactionResponseDTO();
+	    response.setId(transaction.getId());
+	    response.setSenderEmail(transaction.getSender().getEmail());
+	    response.setReceiverEmail(transaction.getReceiver().getEmail());
+	    response.setAmount(transaction.getAmount());
+	    response.setStatus(transaction.getStatus());
+	    response.setCreatedAt(transaction.getCreatedAt());
+	
+	    return ResponseEntity.ok(response);
+	}
 
-        walletService.transfer(senderEmail, request);
-
-        return ResponseEntity.ok("Transfer successful");
-    }
     @GetMapping("/transactions")
     public ResponseEntity<List<TransactionResponseDTO>> getTransactionHistory(
             Authentication authentication) {
