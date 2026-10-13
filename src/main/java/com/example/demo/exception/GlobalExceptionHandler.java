@@ -77,6 +77,7 @@ public class GlobalExceptionHandler {
 	
 	    // Log the actual exception for debugging
 	    // while returning a safe message to the client.
+		
 	    
 		logger.error("Unexpected server error", ex);
 	    ErrorResponseDTO response = new ErrorResponseDTO();
